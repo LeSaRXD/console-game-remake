@@ -44,7 +44,6 @@ vector<ShopLevel> shop;
 bool load_enemies(string const& dir) {
 
 	const string filename = dir + ENEMIES_FILENAME;
-	cout << filename << "\n";
 	ifstream file(filename);
 	if (!file.is_open()) return false;
 
@@ -53,6 +52,10 @@ bool load_enemies(string const& dir) {
 
 	string line;
 	while (getline(file, line)) {
+		if (line.rfind("//", 0) != string::npos) {
+			continue;
+		}
+
 		if (line.rfind("#level", 0) != string::npos) {
 			if (level_number > 0) {
 				enemy_levels.push_back(current_level);

@@ -1,3 +1,7 @@
+// #level indicates a difficulty level for enemies
+// each level has multiple enemies and a boss, indicated with #boss before the enemy
 #level
+// each enemy has the following structure:
+// `name`\n`health` `damage` `defense` `coin reward` `% chance of dropping loot`
 hai hello
-10 5 2 10
+10 5 2 5 10
