@@ -1,0 +1,18 @@
+// each shop level has the following structure:
+// #level `columns` `rows` `required enemies level`
+#level 1 1 0
+// each item has the following structure:
+// `name`\n`cost` `item type` `modifier value` [`second modifier value`]
+// item types:
+// 0: weapon
+// 1: armor
+// 2: amulet
+// 3: potion
+// modifiers:
+// weapon: damage
+// armor: defense, max health
+// amulet: max health
+// potion: healing, damage increase
+Test item
+10 1 10
+// this is a test item of weapon type which has 10 damage

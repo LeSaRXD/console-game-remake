@@ -3,11 +3,17 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
+
 	string mod_dir = string(argv[0]);
 	mod_dir = mod_dir.substr(0, mod_dir.find_last_of("/"));
 	mod_dir.append("/");
+
 	if (!load_enemies(mod_dir)) {
 		cout << "Couldn't load enemies file\n";
+		return 0;
+	}
+	if (!load_shop(mod_dir)) {
+		cout << "Couldn't load shop file\n";
 		return 0;
 	}
 
@@ -15,4 +21,5 @@ int main(int argc, char *argv[]) {
 	while (keep_alive) {
 		keep_alive = user_input();
 	}
+
 }

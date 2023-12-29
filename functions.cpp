@@ -9,6 +9,12 @@ enum Location {
 	mines,
 	dungeon,
 };
+enum ItemType {
+	weapon = 0,
+	armor = 1,
+	amulet = 2,
+	potion = 3,
+};
 
 // structs
 struct Enemy {
@@ -25,12 +31,16 @@ struct EnemyLevel {
 struct ShopItem {
 	string name;
 	unsigned int price;
-	unsigned int max_health;
-	unsigned int defence;
-	unsigned int damage;
-	unsigned int healing;
+	ItemType type;
+	int modifier = 0, optional_modifier = 0;
+	bool sold = false;
 };
-using ShopLevel = vector<ShopItem>;
+struct ShopLevel {
+	vector<ShopItem> items;
+	unsigned int columns, rows;
+	unsigned int required_enemy_level = 0;
+	bool all_sold = false;
+};
 
 // consts
 const string ENEMIES_FILENAME = "enemies.txt", SHOP_FILENAME = "shop.txt";
@@ -41,6 +51,7 @@ vector<ShopLevel> shop;
 
 
 
+// functions
 bool load_enemies(string const& dir) {
 
 	const string filename = dir + ENEMIES_FILENAME;
@@ -64,6 +75,7 @@ bool load_enemies(string const& dir) {
 			level_number++;
 			continue;
 		}
+		
 		bool is_boss = false;
 		if (line.rfind("#boss", 0) != string::npos) {
 			is_boss = true;
@@ -71,7 +83,9 @@ bool load_enemies(string const& dir) {
 		}
 		Enemy enemy;
 		enemy.name = line;
-		file >> enemy.health >> enemy.damage >> enemy.defense >> enemy.drop_chance_percent;
+		getline(file, line);
+		stringstream attributes(line);
+		attributes >> enemy.health >> enemy.damage >> enemy.defense >> enemy.drop_chance_percent;
 		if (is_boss) {
 			current_level.boss = enemy;
 		} else {
@@ -85,7 +99,47 @@ bool load_enemies(string const& dir) {
 
 }
 
-// functions
+bool load_shop(string const& dir) {
+
+	const string filename = dir + SHOP_FILENAME;
+	ifstream file(filename);
+	if (!file.is_open()) return false;
+
+	unsigned int level_number = 0;
+	ShopLevel current_level;
+
+	string line;
+	while (getline(file, line)) {
+		if (line.rfind("//", 0) != string::npos) {
+			continue;
+		}
+
+		if (line.rfind("#level", 0) != string::npos) {
+			if (level_number > 0) {
+				shop.push_back(current_level);
+			}
+			current_level = ShopLevel();
+			stringstream level_stream(line);
+			level_stream >> line >> current_level.columns >> current_level.rows >> current_level.required_enemy_level;
+			level_number++;
+			continue;
+		}
+
+		ShopItem item;
+		int item_type;
+		item.name = line;
+		getline(file, line);
+		stringstream attributes(line);
+		attributes >> item.price >> item_type >> item.modifier >> item.optional_modifier;
+		item.type = static_cast<ItemType>(item_type);
+		current_level.items.push_back(item);
+	}
+	shop.push_back(current_level);
+
+	return true;
+
+}
+
 bool user_input() {
 	string input;
 	getline(cin, input);
