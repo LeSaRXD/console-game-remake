@@ -41,14 +41,22 @@ struct ShopLevel {
 	unsigned int columns, rows;
 	unsigned int required_dungeon_level = 0;
 };
+struct InventoryItem {
+	string name;
+	ItemType type;
+	int modifier = 0, optional_modifier = 0;
+	explicit InventoryItem(const ShopItem& item) : name(item.name), type(item.type), modifier(item.modifier), optional_modifier(item.optional_modifier) {}
+};
 
 // consts
 const string ENEMIES_FILENAME = "enemies.txt", SHOP_FILENAME = "shop.txt";
 
 // variables
-unsigned long current_money = 0, money_modifier = 1;
+unsigned long current_money = 10000, money_modifier = 1;
 unsigned int current_shop_level = 0, current_dungeon_level = 0;
 Location current_location = outside;
+vector<InventoryItem> inventory;
+
 vector<DungeonLevel> dungeon_levels;
 vector<ShopLevel> shop_levels;
 
@@ -172,9 +180,33 @@ bool user_input() {
 		show_shop();
 		return true;
 	}
+	if (input == "buy") {
+		if (current_location != shop) {
+			cout << "You need to be in the shop to buy items\n";
+			return true;
+		}
+		unsigned int item_index;
+		cout << "Enter item number you want to buy: ";
+		cin >> item_index;
+		int shop_level = accessible_shop_level();
+		if (shop_level < 0) {
+			cout << "You can't buy anything right now\n";
+			return true;
+		}
+		if (buy_item(shop_level, --item_index)) {
+			InventoryItem bought_item = InventoryItem(shop_levels.at(shop_level).items.at(item_index));
+			cout << "You bought " << bought_item.name << "\nCurrent money: " << current_money << "\n";
+			inventory.push_back(bought_item);
+		}
+		return true;
+	}
 	if (input == "dungeon") {
 		// TODO: make dungeon work
 		current_location = dungeon;
+		return true;
+	}
+	if (input == "inventory") {
+		show_inventory();
 		return true;
 	}
 
@@ -184,11 +216,16 @@ bool user_input() {
 
 
 
+int accessible_shop_level() {
+	int accessible_shop_level = current_shop_level;
+	if (accessible_shop_level >= shop_levels.size()) accessible_shop_level = shop_levels.size() - 1;
+	while (accessible_shop_level >= 0 && shop_levels.at(accessible_shop_level).required_dungeon_level > current_dungeon_level) accessible_shop_level--;
+	return accessible_shop_level;
+}
+
 void show_shop() {
 	
-	int display_shop_level = current_shop_level;
-	if (display_shop_level >= shop_levels.size()) display_shop_level = shop_levels.size() - 1;
-	while (display_shop_level >= 0 && shop_levels.at(display_shop_level).required_dungeon_level > current_dungeon_level) display_shop_level--;
+	int display_shop_level = accessible_shop_level();
 	if (display_shop_level < 0) {
 		cout << "There is nothing to buy :(\n";
 		return;
@@ -200,11 +237,59 @@ void show_shop() {
 			if (index >= level.items.size()) break;
 
 			ShopItem item = level.items.at(index);
-			string item_str = "- SOLD -";
-			if (!item.sold) item_str = item.name + " (" + to_string(item.price) + ")";
-			cout << setw(20) << item_str;
+			string item_str = to_string(index + 1) + ". " + (item.sold ? "-SOLD-" : item.name + " ($" + to_string(item.price) + ") ");
+			cout << setw(25) << left << item_str;
 		}
 		cout << "\n";
 	}
 
+}
+
+bool buy_item(int shop_level, unsigned int index) {
+	
+	if (shop_level < 0 || shop_level >= shop_levels.size()) {
+		cout << "There is nothing to buy :(\n";
+		return false;
+	}
+	ShopLevel& level = shop_levels.at(shop_level);
+	if (index >= level.items.size()) {
+		cout << "The item with this index doesn't exist!\n";
+		return false;
+	}
+	ShopItem& item_to_buy = level.items.at(index);
+	if (item_to_buy.sold) {
+		cout << "You can't buy already purchased items\n";
+		return false;
+	}
+	if (current_money < item_to_buy.price) {
+		cout << "You can't afford this item!\n";
+		return false;
+	}
+	current_money -= item_to_buy.price;
+	item_to_buy.sold = true;
+	clear_shop_level(shop_level);
+	return true;
+
+}
+
+void clear_shop_level(int shop_level) {
+	ShopLevel& level = shop_levels.at(shop_level);
+	for (ShopItem& item : level.items) {
+		if (!item.sold) return;
+	}
+	current_shop_level++;
+	cout << current_shop_level << "\n";
+}
+
+
+
+void show_inventory() {
+	if (inventory.empty()) {
+		cout << "You don't have any items\n";
+		return;
+	}
+	cout << "Your items: \n";
+	for (InventoryItem item : inventory) {
+		cout << item.name << "\n";
+	}
 }

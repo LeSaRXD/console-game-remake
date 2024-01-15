@@ -1,6 +1,6 @@
 // each shop level has the following structure:
 // #level `columns` `rows` `required dungeon level`
-#level 2 2 1
+#level 2 2 0
 // each item has the following structure:
 // `name`\n`cost` `item type` `modifier value` [`second modifier value`]
 // item types:
@@ -20,3 +20,6 @@ Test item 2
 5 3 20
 Test item 3
 150 2 100
+#level 1 1 0
+Test item 4
+500 0 1
