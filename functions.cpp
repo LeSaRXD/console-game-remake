@@ -217,10 +217,12 @@ bool user_input() {
 
 
 int accessible_shop_level() {
+
 	int accessible_shop_level = current_shop_level;
 	if (accessible_shop_level >= shop_levels.size()) accessible_shop_level = shop_levels.size() - 1;
 	while (accessible_shop_level >= 0 && shop_levels.at(accessible_shop_level).required_dungeon_level > current_dungeon_level) accessible_shop_level--;
 	return accessible_shop_level;
+
 }
 
 void show_shop() {
@@ -273,17 +275,20 @@ bool buy_item(int shop_level, unsigned int index) {
 }
 
 void clear_shop_level(int shop_level) {
+
 	ShopLevel& level = shop_levels.at(shop_level);
 	for (ShopItem& item : level.items) {
 		if (!item.sold) return;
 	}
 	current_shop_level++;
 	cout << current_shop_level << "\n";
+
 }
 
 
 
 void show_inventory() {
+
 	if (inventory.empty()) {
 		cout << "You don't have any items\n";
 		return;
@@ -292,4 +297,5 @@ void show_inventory() {
 	for (InventoryItem item : inventory) {
 		cout << item.name << "\n";
 	}
+
 }
